@@ -1,14 +1,3 @@
--- ============================================================
--- RaceDay Database Schema
--- SQL Server Management Studio (SSMS)
--- Author: [Your Name]
--- Date: September 2026
--- Description: Complete database schema for RaceDay event management system
--- ============================================================
-
--- ============================================================
--- DROP EXISTING DATABASE (if it exists) - COMMENT OUT FOR PRODUCTION
--- ============================================================
 USE master;
 GO
 
