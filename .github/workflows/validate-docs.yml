@@ -177,7 +177,7 @@ jobs:
           fi
       
       - name: Generate validation summary
-        if: always()
+        if: f: always()
         run: |
           echo "========================================="
           echo "VALIDATION SUMMARY - Race Day"
