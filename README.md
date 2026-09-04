@@ -31,3 +31,8 @@ The system supports two distinct user roles:
 - Track personal enrolment history
 - View personal results and performance
 - Access weather and route information for race day preparation
+
+Mark down
+## Build Status
+
+![Validation Status](https://github.com/YOUR_USERNAME/raceday/actions/workflows/validate-docs.yml/badge.svg)
