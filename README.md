@@ -36,3 +36,7 @@ Mark down
 ## Build Status
 
 ![Validation Status](https://github.com/sinovuyob/raceday/actions/workflows/validate-docs.yml/badge.svg)
+
+### CI Workflow
+<img width="1427" height="587" alt="image" src="https://github.com/user-attachments/assets/5f671843-0990-4a2e-b59a-922085be7cd2" />
+
