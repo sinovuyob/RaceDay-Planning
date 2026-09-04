@@ -35,4 +35,4 @@ The system supports two distinct user roles:
 Mark down
 ## Build Status
 
-![Validation Status](https://github.com/YOUR_USERNAME/raceday/actions/workflows/validate-docs.yml/badge.svg)
+![Validation Status](https://github.com/sinovuyob/raceday/actions/workflows/validate-docs.yml/badge.svg)
