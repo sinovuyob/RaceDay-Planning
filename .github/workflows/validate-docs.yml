@@ -1,0 +1,213 @@
+name: Validate Race Day Documentation
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  validate-docs:
+    name: Validate Documentation Structure
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Check docs folder exists
+        id: check-docs
+        run: |
+          if [ -d "docs" ]; then
+            echo "docs folder exists"
+            echo "docs_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "docs folder does not exist"
+            echo "docs_exists=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+      
+      - name: List docs contents
+        if: steps.check-docs.outputs.docs_exists == 'true'
+        run: |
+          echo "Contents of docs folder:"
+          ls -la docs/
+      
+      - name: Validate required files
+        if: steps.check-docs.outputs.docs_exists == 'true'
+        run: |
+          ERROR=0
+          
+          echo "Checking for ERD diagram..."
+          if [ -f "docs/erd_raceday.puml" ] || [ -f "docs/erd_raceday.png" ] || [ -f "docs/erd_raceday.pdf" ]; then
+            echo "ERD diagram found"
+          else
+            echo "ERD diagram not found (expected: erd_raceday.puml, erd_raceday.png, or erd_raceday.pdf)"
+            ERROR=1
+          fi
+          
+          echo "Checking for API endpoint plan..."
+          if [ -f "docs/api_endpoints.md" ] || [ -f "docs/api_endpoints.pdf" ]; then
+            echo "API endpoint plan found"
+          else
+            echo "API endpoint plan not found (expected: api_endpoints.md or api_endpoints.pdf)"
+            ERROR=1
+          fi
+          
+          echo "Checking for SQL database script..."
+          if [ -f "docs/raceday_database.sql" ]; then
+            echo "SQL database script found"
+          else
+            echo "SQL database script not found (expected: raceday_database.sql)"
+            ERROR=1
+          fi
+          
+          echo "Checking for README..."
+          if [ -f "README.md" ] || [ -f "README.txt" ]; then
+            echo "README found"
+          else
+            echo "README not found (expected: README.md or README.txt)"
+            ERROR=1
+          fi
+          
+          if [ $ERROR -eq 1 ]; then
+            echo "One or more required files are missing!"
+            exit 1
+          else
+            echo "All required files are present!"
+          fi
+      
+      - name: Validate file content
+        if: steps.check-docs.outputs.docs_exists == 'true'
+        run: |
+          ERROR=0
+          
+          echo "Validating ERD file content..."
+          if [ -f "docs/erd_raceday.puml" ]; then
+            if [ -s "docs/erd_raceday.puml" ]; then
+              echo "ERD PlantUML file has content"
+            else
+              echo "ERD PlantUML file is empty"
+              ERROR=1
+            fi
+          elif [ -f "docs/erd_raceday.png" ]; then
+            if [ -s "docs/erd_raceday.png" ]; then
+              echo "ERD PNG file has content"
+            else
+              echo "ERD PNG file is empty"
+              ERROR=1
+            fi
+          fi
+          
+          echo "Validating API endpoint plan content..."
+          if [ -f "docs/api_endpoints.md" ]; then
+            if [ -s "docs/api_endpoints.md" ]; then
+              echo "API endpoint plan has content"
+              if grep -q "| HTTP Method" docs/api_endpoints.md; then
+                echo "API endpoint plan contains endpoint table"
+              else
+                echo "API endpoint plan may not contain endpoint table"
+              fi
+            else
+              echo "API endpoint plan is empty"
+              ERROR=1
+            fi
+          fi
+          
+          echo "Validating SQL script content..."
+          if [ -f "docs/raceday_database.sql" ]; then
+            if [ -s "docs/raceday_database.sql" ]; then
+              echo "SQL script has content"
+              if grep -q "CREATE TABLE" docs/raceday_database.sql; then
+                echo "SQL script contains CREATE TABLE statements"
+              else
+                echo "SQL script may not contain CREATE TABLE statements"
+              fi
+              if grep -q "INSERT INTO" docs/raceday_database.sql; then
+                echo "SQL script contains INSERT statements"
+              else
+                echo "SQL script may not contain INSERT statements"
+              fi
+            else
+              echo "SQL script is empty"
+              ERROR=1
+            fi
+          fi
+          
+          if [ $ERROR -eq 1 ]; then
+            echo "One or more files have content issues!"
+            exit 1
+          else
+            echo "All files have valid content!"
+          fi
+      
+      - name: Count files in docs
+        if: steps.check-docs.outputs.docs_exists == 'true'
+        run: |
+          FILE_COUNT=$(ls -1 docs/ | wc -l)
+          echo "Total files in docs: $FILE_COUNT"
+          
+          if [ $FILE_COUNT -ge 3 ]; then
+            echo "Minimum file count satisfied (3+ files)"
+          else
+            echo "Only $FILE_COUNT files found. At least 3 files expected."
+          fi
+      
+      - name: Check build screenshot in README
+        if: steps.check-docs.outputs.docs_exists == 'true'
+        run: |
+          if [ -f "README.md" ]; then
+            if grep -q "build-success.png" README.md || grep -q "CI/CD Build Status" README.md; then
+              echo "Build screenshot reference found in README"
+            else
+              echo "Build screenshot may not be referenced in README"
+            fi
+          fi
+      
+      - name: Check YouTube link in README
+        if: steps.check-docs.outputs.docs_exists == 'true'
+        run: |
+          if [ -f "README.md" ]; then
+            if grep -q "youtube.com" README.md || grep -q "youtu.be" README.md; then
+              echo "YouTube video link found in README"
+            else
+              echo "YouTube video link may not be in README"
+            fi
+          fi
+      
+      - name: Generate validation summary
+        if: always()
+        run: |
+          echo "========================================="
+          echo "VALIDATION SUMMARY - Race Day"
+          echo "========================================="
+          echo "docs folder check: PASSED"
+          
+          if [ -f "docs/erd_raceday.puml" ] || [ -f "docs/erd_raceday.png" ] || [ -f "docs/erd_raceday.pdf" ]; then
+            echo "ERD diagram: PASSED"
+          else
+            echo "ERD diagram: FAILED"
+          fi
+          
+          if [ -f "docs/api_endpoints.md" ] || [ -f "docs/api_endpoints.pdf" ]; then
+            echo "API endpoint plan: PASSED"
+          else
+            echo "API endpoint plan: FAILED"
+          fi
+          
+          if [ -f "docs/raceday_database.sql" ]; then
+            echo "SQL database script: PASSED"
+          else
+            echo "SQL database script: FAILED"
+          fi
+          
+          if [ -f "README.md" ] || [ -f "README.txt" ]; then
+            echo "README file: PASSED"
+          else
+            echo "README file: FAILED"
+          fi
+          
+          echo "========================================="
+          echo "Check the build output above for details"
+          echo "========================================="
